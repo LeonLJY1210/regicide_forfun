@@ -1,0 +1,17 @@
+{
+  "name": "regicide-mobile",
+  "version": "1.0.0",
+  "description": "弑君者 Regicide —— 手机可玩的合作卡牌桌游（单机 / 联机 / 四套皮肤 / 开发者选项）",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js --port 3000"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

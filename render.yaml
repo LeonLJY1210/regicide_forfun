@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: regicide
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    env:
+      - key: NODE_ENV
+        value: production

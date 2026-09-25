@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-skin="classic">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>弑君者 · 手机游玩与联机教程</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --line:#2a2f3a; --gold:#e3b341;
+    --txt:#e8e6e0; --dim:#9aa0ad; --good:#5fd38a; --warn:#f0a85a; --bad:#ef6a6a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:15px/1.65 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    padding:max(16px,env(safe-area-inset-top)) 16px 60px;}
+  .wrap{max-width:760px;margin:0 auto}
+  header{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:18px}
+  h1{font-size:22px;margin:0 0 4px;letter-spacing:2px}
+  h1 .m{color:var(--gold)}
+  .sub{color:var(--dim);font-size:13px}
+  h2{font-size:18px;margin:30px 0 10px;color:var(--gold);border-left:4px solid var(--gold);padding-left:10px}
+  h3{font-size:15px;margin:18px 0 6px;color:#fff}
+  p{margin:8px 0}
+  code{background:#0b0d11;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--gold);font-size:13px}
+  pre{background:#0b0d11;border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow:auto;
+    font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#d7e2c8}
+  pre .c{color:var(--dim)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0}
+  .good{border-left:4px solid var(--good)} .warn{border-left:4px solid var(--warn)} .bad{border-left:4px solid var(--bad)}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#11141a;color:var(--gold)}
+  .tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:20px;border:1px solid var(--line);color:var(--dim);margin-right:6px}
+  .toc{columns:2;column-gap:24px;font-size:13.5px}
+  .toc a{color:var(--txt);text-decoration:none;display:block;padding:3px 0}
+  .toc a:hover{color:var(--gold)}
+  ol,ul{margin:8px 0;padding-left:20px}
+  li{margin:5px 0}
+  .k{color:var(--gold)}
+  @media(max-width:560px){.toc{columns:1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1><span class="m">♛</span> 弑君者 REGICIDE</h1>
+  <div class="sub">手机游玩与联机 · 手把手教程（Termux / 局域网 / 公网）</div>
+</header>
+
+<div class="card">
+  <div class="toc">
+    <a href="#c0">00 准备：手机装好运行环境</a>
+    <a href="#c1">01 单人游玩（全程本机）</a>
+    <a href="#c2">02 局域网联机（同一 WiFi）</a>
+    <a href="#c3">03 公网联机（任意网络）</a>
+    <a href="#c4">04 场景速查表</a>
+    <a href="#c5">05 排障与提醒</a>
+  </div>
+</div>
+
+<h2 id="c0">00 准备：手机装好运行环境</h2>
+<p>你已装好 Termux。下面把"能跑游戏的服务器"装进手机。整套流程只做一次。</p>
+
+<h3>① 装 Node（游戏运行所需）</h3>
+<pre><span class="c"># 在 Termux 里逐行输入</span>
+pkg update
+pkg install nodejs
+pkg install git tmux <span class="c"># git 用于拉代码，tmux 用于后台保活</span>
+node -v                <span class="c"># 看到 v18+ 就成功</span></pre>
+
+<h3>② 把游戏项目放进 Termux</h3>
+<p><span class="tag">方法 A</span> 用我给你的 <code>regicide-portable.zip</code>（最简单）：先把 zip 下载/传到手机的"下载"文件夹，再进 Termux：</p>
+<pre>termux-setup-storage          <span class="c"># 首次会弹权限，允许</span>
+cp /storage/downloads/regicide-portable.zip $HOME/
+cd $HOME
+unzip regicide-portable.zip   <span class="c"># 解压出 regicide/ 文件夹</span>
+cd regicide
+node server.js                <span class="c"># 启动！看到"本机访问 http://localhost:3000"即成功</span></pre>
+<p><span class="tag">方法 B</span> 推到 GitHub 后克隆（适合之后要云端部署）：</p>
+<pre>git clone 你的仓库地址 regicide
+cd regicide
+npm install
+node server.js</pre>
+
+<h3>③ 让服务器在后台不掉</h3>
+<p>直接 <code>node server.js</code> 会在你关掉 Termux 时被杀掉。用 <code>tmux</code> 保活，并锁唤醒：</p>
+<pre>termux-wake-lock              <span class="c"># 防止手机休眠杀进程</span>
+tmux new -s reg               <span class="c"># 开一个后台窗口</span>
+node server.js
+<span class="c"># 按 Ctrl+B 再按 D 脱离（服务器继续跑）</span>
+tmux attach -t reg            <span class="c"># 想回来看日志就这条</span></pre>
+<div class="card warn"><b>提示：</b>只要 <code>tmux</code> 里的 <code>node server.js</code> 在跑，你的手机就是一台"游戏服务器"。下面所有模式都基于它。</div>
+
+<h2 id="c1">01 单人游玩（全程本机，最省事）</h2>
+<p>单人模式完全在手机浏览器里算，<b>不需要任何网络、不需要朋友</b>。</p>
+<ol>
+  <li>Termux 里确保 <code>node server.js</code> 在跑（tmux 里）。</li>
+  <li>手机自带浏览器（Chrome/Safari 都行）打开 <code>http://localhost:3000</code>（打不开就试 <code>http://127.0.0.1:3000</code>）。</li>
+  <li>首页点「单人游戏」→ 选难度 → 开玩。</li>
+</ol>
+<div class="card good"><b>这就是手机-only 单人最稳的路：</b>不用电脑、不用外网、不耗流量，纯本地。就算在飞机上没信号也能玩。</div>
+
+<h2 id="c2">02 局域网联机（同一 WiFi / 你的热点）</h2>
+<p>你和朋友要在<b>同一个网络</b>里。你当"主机"（Termux 跑着服务），朋友用浏览器连你的地址。</p>
+
+<h3>主机怎么看自己的联机地址</h3>
+<p>启动 <code>node server.js</code> 时终端会打印一行 <code>局域网联机： http://192.168.x.x:3000</code>，那就是给你的朋友用的地址。如果没看清，在 Termux 里查：</p>
+<pre>ip addr show wlan0 | grep inet     <span class="c"># 找 192.168.x.x 或 10.x.x.x</span></pre>
+
+<h3>朋友怎么进</h3>
+<ol>
+  <li>朋友手机连到<b>和你相同的 WiFi / 你的热点</b>。</li>
+  <li>朋友浏览器打开你给的 <code>http://192.168.x.x:3000</code>。</li>
+  <li>你这边点「创建房间」拿到 4 位房号，发给朋友；朋友点「加入房间」输房号即可。</li>
+</ol>
+
+<h3>分场景</h3>
+<div class="card good"><b>🏠 家里 WiFi：</b>最理想。你开 Termux 服务，全家连家里 WiFi，开你的 <code>192.168.x.x:3000</code> 即可。延迟通常 &lt;5ms。注意：若路由器开了「AP 隔离 / 宾客网络」，设备间会互不通——用主网络、或关掉隔离即可。</div>
+<div class="card bad"><b>🏫 学校校园网 WiFi：</b>大概率<b>连不通</b>。学校 WiFi 几乎都开了 AP 隔离（防学生互攻），同一 WiFi 下设备之间被隔开。所以"校园网 + 局域网联机"基本失败，改用下面的<b>公网</b>或你的<b>热点</b>。</div>
+<div class="card warn"><b>📱 你的手机热点：</b>可行！让朋友连<b>你的热点</b>，他们开你的网关地址（通常是 <code>192.168.43.1:3000</code>，以 <code>ip addr</code> 显示为准）。注意：朋友会走<b>你的蜂窝流量</b>，人多动牌多会耗流量；适合两三个人就近玩。</div>
+
+<h2 id="c3">03 公网联机（任意网络都能玩，强烈推荐在学校用）</h2>
+<p>公网 = 把服务器放到互联网上，所有人用网址进，<b>不受校园网隔离、不受是否同一 WiFi 限制</b>。这是在学校最稳的方案。</p>
+
+<h3>方案 A：免费 Node 云一键部署（最省心，全程手机可操作）</h3>
+<p>把 <code>regicide/</code> 推到 GitHub，然后交给 Railway 或 Render（免费档）托管，它们会自动 <code>npm install</code> + <code>npm start</code>，给你一个公网网址。</p>
+<pre><span class="c"># 手机上用 GitHub App / 浏览器，把 regicide 文件夹推成仓库即可</span>
+git add .
+git commit -m "regicide"
+git push</pre>
+<p>然后：</p>
+<ul>
+  <li><b>Railway：</b>打开 railway.app → New Project → Deploy from GitHub repo → 选你的仓库 → 自动分配 <code>xxx.up.railway.app</code>。</li>
+  <li><b>Render：</b>打开 render.com → New Web Service → 连 GitHub 仓库 → Build <code>npm install</code>、Start <code>npm start</code> → 得 <code>xxx.onrender.com</code>。（项目里已附 <code>render.yaml</code> / <code>railway.json</code>，会自动识别。）</li>
+</ul>
+<div class="card good">部署好后，<b>任何人</b>（家里 WiFi / 学校 WiFi / 你的热点 / 纯蜂窝）只要在浏览器打开这个网址，就能创建/加入房间联机。<b>你连 Termux 都不用开。</b>单人也能直接开这个网址玩。</div>
+<div class="card warn"><b>免费档注意：</b>Render 免费版 15 分钟无访问会休眠，下次有人进要等约 30 秒"冷启动"；Railway  hobby 档不休眠但有月度额度。无所谓，进一次就活了。</div>
+
+<h3>方案 B：手机 Termux + 隧道（进阶，不推荐新手）</h3>
+<p>在 Termux 本地跑服务，再用 Cloudflare Tunnel / ngrok 把本机暴露到公网。需要额外下载隧道程序（Termux 里装 <code>cloudflared</code> 较折腾），且依赖手机一直在线。不如方案 A 省事，仅作了解。</p>
+<pre><span class="c"># 仅示意，新手跳过</span>
+pkg install cloudflared
+cloudflared tunnel --url http://localhost:3000</pre>
+
+<h2 id="c4">04 场景速查表</h2>
+<table>
+  <tr><th>你在哪 / 用什么</th><th>单人</th><th>和朋友联机</th><th>怎么做</th></tr>
+  <tr><td>🏠 家里 WiFi</td><td>✅ 本地即可</td><td>✅ 局域网</td><td>Termux 开服务，朋友开 <code>192.168.x.x:3000</code></td></tr>
+  <tr><td>🏫 学校校园网 WiFi</td><td>✅ 本地即可</td><td>❌ 局域网通常被隔离</td><td>用<b>公网</b>（云端部署网址）最稳</td></tr>
+  <tr><td>📱 学校用你手机热点</td><td>✅ 本地即可</td><td>✅ 热点局域网</td><td>朋友连你热点，开网关 IP:3000（耗你流量）</td></tr>
+  <tr><td>🌐 任何网络 + 云端</td><td>✅</td><td>✅ 公网</td><td>打开云端网址，创建/加入房间</td></tr>
+  <tr><td>✈️ 无信号</td><td>✅ 纯本地</td><td>❌</td><td>只能单人（Termux 本地服务 + localhost）</td></tr>
+</table>
+
+<h2 id="c5">05 排障与提醒</h2>
+<div class="card">
+  <ul>
+    <li><b>朋友打不开我的 IP 地址</b> → 多半是 AP 隔离（学校/酒店常见）或连的不是同一 WiFi。改用公网方案。</li>
+    <li><b>手机浏览器打不开 localhost:3000</b> → 试 <code>127.0.0.1:3000</code>；确认 Termux 里 <code>node server.js</code> 真在跑（tmux 里 <code>tmux attach -t reg</code> 看日志）。</li>
+    <li><b>一关 Termux 游戏就断</b> → 没用 tmux/没 <code>termux-wake-lock</code>。按 00-③ 操作。</li>
+    <li><b>校园网想联机又不想耗流量</b> → 公网云端部署是唯一干净解；你的热点会吃蜂窝流量。</li>
+    <li><b>延迟高</b> → 同 WiFi 几毫秒；公网取决于服务器离你多远（Railway/Render 在境外可能 100~300ms，国内 Zeabur/旅鸟更近）。不影响回合制玩法。</li>
+  </ul>
+</div>
+<div class="card good"><b>一句话总结：</b>单人永远本地跑（Termux + localhost，零流量零网络）；联机在家用局域网、在学校用<b>公网云端网址</b>最稳；学校热点能顶替局域网但吃流量。把项目推到 Railway/Render 一次，之后所有场景一个网址通吃。</div>
+
+<p style="color:var(--dim);font-size:12px;margin-top:24px">配套文件：<code>regicide/</code> 项目（含 <code>server.js</code>、<code>public/</code>、<code>render.yaml</code>、<code>railway.json</code>）、<code>regicide-portable.zip</code> 可携带包、<code>使用说明书.html</code> 规则手册。</p>
+</div>
+</body>
+</html>
